@@ -1,0 +1,27 @@
+# Sjabloon: meldt een mislukte unit op het alarmkanaal. Wordt gestart via OnFailure=meld-fout@%n.service.
+# Dekt: INFRA-69, SCR-42 (het alarm), ARCH-69 (alleen het kanaal, niet de drempels)
+# Aanpassen: het pad van meld-fout.sh en het bestand met het webhookadres. Een webhookadres is een geheim
+#   (MSG-41): modus 600, eigenaar de gebruiker hieronder, niet in deze unit en niet in git.
+# Controleren: systemctl start meld-fout@proef.service geeft een proefmelding op het kanaal (ARCH-69 vraagt
+#   een geteste proefmelding).
+
+[Unit]
+Description=Foutmelding voor %i
+
+[Service]
+Type=oneshot
+User=voorbeeld
+Group=voorbeeld
+LoadCredential=webhook_url:/etc/voorbeeld/alarm_webhook_url
+ExecStart=/opt/voorbeeld/meld-fout.sh %i
+TimeoutStartSec=1min
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+CapabilityBoundingSet=

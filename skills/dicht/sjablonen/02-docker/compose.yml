@@ -1,0 +1,95 @@
+# Sjabloon: gehard Compose-bestand voor een applicatie met haar eigen PostgreSQL.
+# Dekt: INFRA-13, INFRA-17, INFRA-26, INFRA-27, INFRA-28, INFRA-29, INFRA-30, INFRA-31, INFRA-32, INFRA-35,
+#       INFRA-39, INFRA-40, INFRA-72, GIT-91, DB-98, ARCH-12, ARCH-67
+# Dekt gedeeltelijk:
+#   - INFRA-32: de getallen (512m, 200, 1.0) zijn de voorbeeldwaarden uit de regel, geen norm. Kies ze per dienst.
+#   - INFRA-35: de regel noemt geen interval of aantal pogingen; hier gelden de standaardwaarden van Docker.
+#     Kies ze bewust als de dienst traag start.
+#   - INFRA-33 (begrensde logs) staat in daemon.json, niet hier.
+# Aanpassen:
+#   - name: de projectnaam, uniek op de host (INFRA-40). Draai nooit "up --remove-orphans" op een gedeeld project.
+#   - de images met tag plus digest (GIT-91): docker compose config --resolve-image-digests
+#   - de poort, de health-paden (/health/live en /health/ready zijn eigen namen, ARCH-67 noemt geen pad),
+#     het externe proxynetwerk, de paden van de geheimen (modus 600, buiten elke repository, INFRA-72).
+#   - voeg met cap_add alleen toe wat aantoonbaar nodig is (INFRA-28).
+# Nooit: privileged, network_mode: host, pid: host (INFRA-31) of /var/run/docker.sock als volume (INFRA-26).
+# Controleren:
+#   docker compose config                                  laadt zonder fout
+#   docker inspect <container> --format '{{.HostConfig.ReadonlyRootfs}} {{.HostConfig.CapDrop}} {{.HostConfig.SecurityOpt}} {{.Config.User}}'
+#   ss -tlnp | grep <poort>                                toont 127.0.0.1, niet 0.0.0.0 of [::] (INFRA-13)
+#   docker inspect <container> --format '{{json .Mounts}}' bevat geen docker.sock (INFRA-26)
+
+name: voorbeeld
+
+services:
+  api:
+    image: registry.example/voorbeeld-api:<versie>@sha256:<digest>
+    user: "10001:10001"                      # INFRA-27, gelijk aan de Dockerfile
+    read_only: true                          # INFRA-30
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]                          # INFRA-28
+    security_opt:
+      - "no-new-privileges:true"             # INFRA-29
+    mem_limit: 512m                          # INFRA-32, voorbeeldwaarde
+    pids_limit: 200                          # INFRA-32, voorbeeldwaarde
+    cpus: 1.0                                # INFRA-32, voorbeeldwaarde
+    restart: unless-stopped                  # INFRA-35
+    healthcheck:                             # INFRA-35, ARCH-67: het adres "leeft het proces", zonder afhankelijkheden
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+    # Alleen loopback, zodat nginx op de host erbij kan (INFRA-13). Draait nginx zelf in een container op
+    # het proxynetwerk, laat "ports" dan helemaal weg.
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      TZ: UTC                                # ARCH-12
+      DATABASE_URL_FILE: /run/secrets/database_url   # de applicatie leest het bestand; geen geheim in dit bestand (INFRA-72)
+    secrets:
+      - database_url
+    volumes:
+      - uploads:/data/uploads                # schrijfbare plek expliciet (INFRA-30), buiten de webroot (WEB-46)
+    networks: [proxy, intern]                # INFRA-17
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:<major.minor>@sha256:<digest>   # DB-98, GIT-91
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]   # gemeten op postgres:18.6: start hiermee; met alleen SETGID en SETUID niet. Toets het op de eigen versie
+    security_opt:
+      - "no-new-privileges:true"
+    mem_limit: 512m
+    pids_limit: 200
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password   # DB-98
+    secrets:
+      - postgres_password
+    volumes:
+      # Benoemd volume dat in de back-up zit (DB-98, DB-44). Het pad hangt af van de versie van het image:
+      # vanaf 18 is het /var/lib/postgresql (het image weigert te starten met een volume op .../data), tot en
+      # met 17 is het /var/lib/postgresql/data (op het pad van 18 komt de data daar in een naamloos volume).
+      # Controleer na de start: docker inspect <container> --format '{{json .Mounts}}' toont geen naamloos volume.
+      - pgdata:/var/lib/postgresql
+      - ./initdb:/docker-entrypoint-initdb.d:ro   # map, alleen-lezen (INFRA-39); maakt de app- en migratierol (06-database/rollen.sql)
+    networks: [intern]                       # niet op het proxynetwerk, geen ports (INFRA-13, INFRA-17, DB-58)
+
+networks:
+  proxy:
+    external: true
+  intern:
+    internal: true                           # geen route naar buiten (INFRA-17)
+
+volumes:
+  uploads:
+  pgdata:
+
+secrets:
+  database_url:
+    file: /etc/voorbeeld/database_url        # modus 600, buiten elke repository (INFRA-72, DB-62)
+  postgres_password:
+    file: /etc/voorbeeld/postgres_password

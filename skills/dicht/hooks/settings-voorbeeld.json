@@ -1,0 +1,129 @@
+{
+  "_leeswijzer": "Twee blokken (besluit van Marketing Maatwerk, 04-10-2026). 'globaal' voeg je samen met de bestaande hooks in ~/.claude/settings.json: de veiligheidshooks gelden in elke sessie en elke map, en sinds 05-10-2026 (besluit van Marketing Maatwerk: dicht bij alles wat we bouwen) ook de hook die code schrijven weigert zonder geladen skill en profiel (pretool_verplicht.py), de herinnering bij een bouwwoord (prompt_verplicht.py) en de melding bij de start. 'per_project' komt in <repo-root>/.claude/settings.json van een repo met een map .dicht/: de Stop-hook (bewijs) en de noodrem. Neem alleen de inhoud van het blok over, niet de sleutel 'globaal' of 'per_project'. Controleer de paden: een verkeerd pad zet een hook stil uit. Elke hook start via een korte sh-regel: python3 met een pad dat niet bestaat geeft exitcode 2, en Claude Code leest exitcode 2 van een hook als blokkeren (gemeten op 05-10-2026 met Claude Code 2.1.289: elke opdracht werd geweigerd). De sh-regel meldt een ontbrekend bestand met exitcode 0 en maakt van elke andere fout exitcode 1, die niet blokkeert. De hooks zelf weigeren alleen via hun JSON-uitvoer. Het pad van het script is het laatste argument.",
+  "globaal": {
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "Bash|Write|Edit",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/pretool_gevaarlijk.py"
+              ],
+              "timeout": 10
+            }
+          ]
+        },
+        {
+          "matcher": "Bash",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/pretool_geheimscan.py"
+              ],
+              "timeout": 30
+            }
+          ]
+        },
+        {
+          "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/pretool_verplicht.py"
+              ],
+              "timeout": 15
+            }
+          ]
+        }
+      ],
+      "SessionStart": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/sessionstart_dicht.py"
+              ],
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/prompt_verplicht.py"
+              ],
+              "timeout": 15
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "per_project": {
+    "hooks": {
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/prompt_overrule.py"
+              ],
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "sh",
+              "args": [
+                "-c",
+                "[ -r \"$1\" ] || { printf '%s\\n' '{\"systemMessage\": \"dicht: een hook van de skill dicht ontbreekt; er is niets gecontroleerd en niets geblokkeerd. Zet de skill terug of haal de hook uit de instellingen (README.md).\"}'; exit 0; }; python3 \"$1\" || exit 1",
+                "dicht-hook",
+                "/home/gebruiker/.claude/skills/dicht/hooks/stop_bewijs.py"
+              ],
+              "timeout": 20
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

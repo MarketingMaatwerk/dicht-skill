@@ -1,0 +1,20 @@
+# Sjabloon: timer bij voorbeeld-taak.service.
+# Dekt: SCR-39, SCR-40, SCR-41
+# Aanpassen:
+#   - OnCalendar: het tijdstip. Niet tussen 02:00 en 03:00 lokale tijd als het script zelf op uur of datum
+#     beslist (SCR-40).
+#   - Persistent=true haalt een gemiste run in na een herstart (SCR-39). Leg per taak vast of dat de bedoeling
+#     is; zo nee, haal de regel weg en laat het script zelf uitrekenen wat openstaat.
+#   - RandomizedDelaySec is de voorbeeldwaarde uit SCR-39.
+# Controleren: systemctl list-timers voorbeeld-taak.timer toont de volgende en de vorige run.
+
+[Unit]
+Description=Timer voor voorbeeld-taak
+
+[Timer]
+OnCalendar=*-*-* 07:00:00
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

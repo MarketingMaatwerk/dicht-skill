@@ -1,0 +1,12 @@
+# Sjabloon: geheimscan voor elke commit met pre-commit (versie 4.6.2 in het onderzoek).
+# Dekt: GIT-33
+# Aanpassen: rev. Zet hier de volledige commit-SHA van gitleaks v8.30.1 (GIT-41); het onderzoek noemt de versie,
+#   niet de SHA. Opzoeken: git ls-remote https://github.com/gitleaks/gitleaks refs/tags/v8.30.1
+# Aanzetten per clone: pre-commit install
+# Controleren (GIT-33): een testcommit met een nepsleutel wordt geweigerd.
+# Niet gevalideerd met pre-commit (niet aanwezig op de server); alleen de YAML is geladen.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: <commit-SHA van v8.30.1>
+    hooks:
+      - id: gitleaks

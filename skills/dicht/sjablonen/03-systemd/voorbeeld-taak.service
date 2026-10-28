@@ -1,0 +1,42 @@
+# Sjabloon: service bij een timer (een geplande taak, een run per keer).
+# Dekt: SCR-38, SCR-41, INFRA-66, INFRA-67, INFRA-69, INFRA-70, INFRA-72, SCR-20, SCR-36
+# Aanpassen:
+#   - "voorbeeld-taak" overal, de gebruiker, het script en TimeoutStartSec (15min is de voorbeeldwaarde uit
+#     SCR-38: kies ruim de normale looptijd).
+#   - het script zelf is alleen schrijfbaar voor zijn eigenaar (INFRA-70): stat -c '%a %U' <script>.
+#   - een Python-script: ExecStart=/opt/voorbeeld/.venv/bin/python -I /opt/voorbeeld/taak.py (SCR-32, SCR-36).
+# Dubbel draaien (INFRA-69): systemd start een oneshot-service niet opnieuw zolang hij loopt. Het script neemt
+#   daarnaast zelf een slot (04-scripts/taak.sh, SCR-18), zodat een handmatige start er ook onder valt.
+# Fout melden (INFRA-69): OnFailure hieronder. Het uitblijven van een geslaagde run meldt dit bestand niet:
+#   dat vraagt een bewaking van buiten (INFRA-87, ARCH-69).
+# Controleren:
+#   systemd-analyze verify voorbeeld-taak.service voorbeeld-taak.timer
+#   systemctl list-timers voorbeeld-taak.timer
+#   journalctl -u voorbeeld-taak.service -n 20
+
+[Unit]
+Description=Voorbeeld-taak (geplande run)
+OnFailure=meld-fout@%n.service
+
+[Service]
+Type=oneshot
+User=voorbeeld
+Group=voorbeeld
+WorkingDirectory=/opt/voorbeeld
+LoadCredential=api_token:/etc/voorbeeld/api_token
+ExecStart=/opt/voorbeeld/taak.sh
+TimeoutStartSec=15min
+
+StandardOutput=journal
+StandardError=journal
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/voorbeeld
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=

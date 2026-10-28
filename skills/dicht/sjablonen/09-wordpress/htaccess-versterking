@@ -1,0 +1,48 @@
+# Sjabloon: regels voor de .htaccess in de webroot van een WordPress-klantsite.
+# Dekt: WP-24, WP-41, WP-55, WP-63, WP-64, WP-65, WEB-64
+# Plaats (WP-65): boven "# BEGIN WordPress" en buiten de blokken van cacheplugins. Niet in een submap: op de
+#   LiteSpeed-servers werkte "Require all denied" in een submap niet, een rewrite bovenaan de root wel (WP-64).
+#   Heeft wp-content/.htaccess een eigen "RewriteEngine On" (bijvoorbeeld van een afbeeldingsplugin), dan
+#   gelden de regels uit de root daar niet: meet het.
+# Afwijking van het voorbeeld in WP-41: daar staat een <Files>-blok met "Require all denied". Hier is ook
+#   wp-config als RewriteRule geschreven, omdat WP-64 die vorm voorschrijft en niet bevestigd is welke regels
+#   LiteSpeed Enterprise negeert.
+# Aanpassen: haal de regel voor xmlrpc.php weg op een site met Jetpack, een mobiele app of een andere
+#   XML-RPC-koppeling (WP-55). De extensies voor back-ups volgen WEB-64; biedt de site bewust zip-bestanden
+#   aan, haal zip dan uit de lijst en leg dat vast.
+# Wijzigen op een klantsite: alleen na akkoord van Marketing Maatwerk en met een terugweg (WP-53, INFRA-99).
+# Controleren (WP-64): een regel telt pas als een anonieme aanvraag op de productieserver het verwachte
+#   antwoord geeft, naast een verzonnen naam in dezelfde map. Gebruik controleer-blokkades.sh. Een blik in het
+#   bestand of een scan telt niet.
+# Gevalideerd op 04-10-2026 op Apache 2.4.68 (wegwerpcontainer met WordPress 7.1.2): 22 geblokkeerde paden geven
+#   403 (ook hoofdletters, een dotfile in een submap en een mapweergave), .well-known, een gewoon bestand, de
+#   inlogpagina, een bericht en de REST API geven 200. Niet gedraaid op LiteSpeed: daar blijft de meting op de
+#   productieserver nodig (WP-64).
+
+RewriteEngine On
+
+# Geen PHP uitvoeren in de uploadmap (WP-24).
+RewriteRule ^wp-content/uploads/.*\.(php|phtml|phar)$ - [F,L,NC]
+
+# XML-RPC dicht (WP-55).
+RewriteRule ^xmlrpc\.php$ - [F,L]
+
+# wp-config en kopieen ervan (WP-41).
+RewriteRule ^wp-config\.php - [F,L,NC]
+
+# Back-upmappen van migratieplugins (WP-63).
+RewriteRule ^wp-content/(ai1wm-backups|plugins/all-in-one-wp-migration[^/]*/storage)/ - [F,L]
+
+# Dotfiles, behalve .well-known (WEB-64).
+RewriteRule ^(?!\.well-known/)(.*/)?\. - [F,L]
+
+# Back-ups, dumps en logs (WEB-64).
+RewriteRule \.(sql|sql\.gz|bak|old|orig|save|swp|log|wpress|zip|tar|tar\.gz|tgz)$ - [F,L,NC]
+RewriteRule ~$ - [F,L]
+
+# Geen mapweergave (WEB-64).
+Options -Indexes
+
+# BEGIN WordPress
+# (het blok dat WordPress zelf beheert blijft ongewijzigd)
+# END WordPress

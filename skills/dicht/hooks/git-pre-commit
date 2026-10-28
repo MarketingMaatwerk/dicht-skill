@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Git pre-commit-hook van de skill "dicht": geheimscan op wat gestaged is (GIT-33).
+# Geen netwerk, geen externe tool. Installatie: kopieer of koppel dit bestand als
+# .git/hooks/pre-commit. De scanner staat in DICHT_HOOKS (standaard ~/.claude/skills/dicht/hooks).
+# Faalt gesloten (GIT-59): bij een treffer of een fout in de scan gaat de commit niet door,
+# met een melding. Overslaan met --no-verify is een uitzondering (ARCH-30).
+set -euo pipefail
+
+scanner="${DICHT_HOOKS:-$HOME/.claude/skills/dicht/hooks}/geheimscan.py"
+if [[ ! -f "$scanner" ]]; then
+  echo "dicht pre-commit: scanner niet gevonden op $scanner; commit geweigerd (zet DICHT_HOOKS)." >&2
+  exit 1
+fi
+if ! python3 "$scanner" --staged >&2; then
+  echo "dicht pre-commit: commit geweigerd door de geheimscan (zie hierboven)." >&2
+  exit 1
+fi

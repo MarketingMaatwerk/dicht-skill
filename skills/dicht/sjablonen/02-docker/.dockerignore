@@ -1,0 +1,47 @@
+# Sjabloon: .dockerignore. Houdt geheimen, geschiedenis en ballast uit de bouwcontext.
+# Dekt: GIT-95, INFRA-37, ARCH-05
+# Aanpassen: voeg toe wat het project zelf aan gevoelige of grote mappen heeft.
+# Controleren: na "docker build" bevat het image geen van deze paden:
+#   docker run --rm <image> sh -c 'ls -a /app' toont geen .env, .git, bewijs of tests.
+# Let op: .npmrc staat hier bewust niet in (de Dockerfile kopieert hem voor ignore-scripts, GIT-71).
+#   Zet daarom nooit een token in .npmrc; een token gaat via RUN --mount=type=secret (GIT-95).
+
+.git
+.gitignore
+.github
+
+# Geheimen en sleutels
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+secrets/
+
+# Dumps en back-ups
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.wpress
+*.zip
+*.tar
+*.tar.gz
+
+# Wat het image zelf bouwt of niet nodig heeft
+node_modules
+dist
+coverage
+playwright-report
+test-results
+bewijs
+docs
+tests
+*.log
+.DS_Store
+Dockerfile
+docker-compose*.yml
+compose*.yml

@@ -1,0 +1,43 @@
+# Sjabloon: .gitignore, neerzetten voor de eerste commit.
+# Dekt: GIT-10, GIT-32 (alleen het voorkomen), ARCH-49 (inlogtoestanden van tests)
+# Let op (GIT-10): .gitignore doet niets voor een bestand dat al gevolgd wordt. Haal dat weg met
+#   git rm --cached <bestand>, en behandel een geheim dat al gecommit is als gelekt (GIT-36).
+# Aanpassen: de uploadmap van het project.
+# Controleren: git status --ignored toont de geheimen als genegeerd; git ls-files | grep -iE '\.env$|\.pem$|\.key$|\.sql' is leeg.
+
+# Geheimen en configuratie per omgeving
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dumps en back-ups
+*.sql
+*.sql.gz
+*.dump
+*.bak*
+*.wpress
+
+# Afhankelijkheden en bouwresultaat
+node_modules/
+vendor/
+dist/
+coverage/
+
+# Uploads van gebruikers
+uploads/
+wp-content/uploads/
+
+# Tests: inlogtoestanden en rapporten (ARCH-49)
+playwright/.auth/
+playwright-report/
+test-results/
+reports/mutation/
+
+# Editor en systeem
+.DS_Store
+*.swp
+*~

@@ -1,0 +1,27 @@
+// Sjabloon: strikte tsconfig voor een Node-dienst.
+// Dekt: API-67
+// De zes opties onder "strikt" komen letterlijk uit API-67. De overige opties (target, module, outDir) zijn
+//   gangbare instellingen voor Node en geen eis uit het onderzoek: pas ze aan het project aan.
+// "strict" staat er expliciet: sinds TypeScript 6.0 is het de standaard, maar oudere projecten staan nog op 5.x.
+// Controleren (API-67): tsc --showConfig toont de zes opties; npm run typecheck (tsc --noEmit) is groen in de
+//   gate en voor elke deploy.
+// Gevalideerd op 04-10-2026 met tsc 6.0.3 (wegwerpcontainer): tsc --showConfig toont de zes opties, het
+//   API-skelet uit 08-api compileert ermee zonder fout en een proef met een typefout wordt gevonden.
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}

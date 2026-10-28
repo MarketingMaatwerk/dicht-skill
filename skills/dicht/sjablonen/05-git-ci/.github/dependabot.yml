@@ -1,0 +1,47 @@
+# Sjabloon: Dependabot-versie-updates, gegroepeerd en met wachttijd.
+# Dekt: GIT-52, GIT-72, GIT-76, GIT-92
+# Dekt gedeeltelijk: GIT-55 (het bestand zet geen automerge aan; het mergen zelf is werkwijze, zie Mergen)
+# De wachttijd van 7 dagen is de eigen keuze uit GIT-72 (besluit 16); semver-major-days 30 komt uit het
+#   voorbeeld in GIT-76.
+# Aanpassen: haal de blokken weg van ecosystemen die de repo niet gebruikt; pas directory aan als het
+#   manifest niet in de root staat.
+# Daarnaast in de repo-instellingen: dependency graph, Dependabot alerts en security updates aan (GIT-28).
+#   Beveiligingsupdates wachten niet op de wachttijd.
+# Mergen (GIT-55): alleen na een groene gate; automatisch alleen patch-updates van bestaande afhankelijkheden
+#   na de wachttijd; een nieuwe afhankelijkheid, een major en elke wijziging aan .github/ leest een mens.
+# Controleren: het bestand laadt op GitHub zonder fout (tab Insights, Dependency graph, Dependabot);
+#   zizmor .github/ is zonder bevinding (GIT-56).
+# Niet gevalideerd tegen het schema van GitHub; alleen de YAML is geladen.
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    cooldown: { default-days: 7, semver-major-days: 30 }
+    groups:
+      klein:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    cooldown: { default-days: 7, semver-major-days: 30 }
+    groups:
+      klein:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    cooldown: { default-days: 7 }
+
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    cooldown: { default-days: 7 }
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule: { interval: "weekly" }
+    cooldown: { default-days: 7 }

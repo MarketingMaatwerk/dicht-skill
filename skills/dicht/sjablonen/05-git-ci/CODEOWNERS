@@ -1,0 +1,9 @@
+# Sjabloon: .github/CODEOWNERS
+# Dekt: GIT-29
+# Nodig zodra meer dan een persoon schrijfrecht heeft; zet dan ook "Require review from Code Owners" aan.
+# CODEOWNERS werkt op een prive-repo alleen met GitHub Pro of Team (GIT-23).
+# Aanpassen: <gebruikersnaam>. Plaats dit bestand als .github/CODEOWNERS.
+# Controleren: een PR die .github/ raakt vraagt review van de eigenaar.
+
+/.github/            @<gebruikersnaam>
+/.github/CODEOWNERS  @<gebruikersnaam>

@@ -1,0 +1,11 @@
+# Sjabloon: /.well-known/security.txt
+# Dekt: INFRA-65, PRIV-72
+# Aanpassen: het adres, de vervaldatum (in de toekomst; vernieuw hem voordat hij verloopt) en de URL's.
+#   Contact en Expires zijn het minimum uit INFRA-65; de andere velden zijn optioneel.
+# Plaatsen: op https://<host>/.well-known/security.txt (de nginx-blokkade voor dotfiles laat .well-known open).
+# Controleren: curl -s https://<host>/.well-known/security.txt toont Contact: en een Expires: in de toekomst.
+Contact: mailto:<security@voorbeeld.nl>
+Expires: <jjjj-mm-ddT00:00:00Z>
+Preferred-Languages: nl, en
+Canonical: https://<host>/.well-known/security.txt
+Policy: https://<host>/beveiligingsbeleid

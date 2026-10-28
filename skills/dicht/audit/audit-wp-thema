@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# audit-wp-thema: alleen-lezen, begrensde audit voor het projecttype wp-thema (ARCH-84, ARCH-85).
+# Gebruik: audit-wp-thema [--pad MAP] [--url URL] [--server] [--wp MAP | --wp-ssh gebruiker@host:/pad] [--uit MAP] [--geen-bewijs]
+# Schrijft alleen bewijs/<datum>-<hash>.md en .json. Exitcode 1 bij een niet-voldane harde regel.
+#
+# Meet automatisch (domein, regel, dekking, controle); alleen regels uit de checklist van het type tellen mee:
+#   git      GIT-10                       volledig  .gitignore sluit .env uit en er is geen geheimbestand gevolgd
+#   infra    INFRA-72                     deel      geheimbestanden in de projectmap hebben modus 600 of 400
+#   git      GIT-32                       deel      geheimscan over de gevolgde bestanden
+#   git      GIT-33                       deel      pre-commit-hook met geheimscan aanwezig
+#   git      GIT-18                       deel      laatste commit is ondertekend
+#   git      GIT-09                       deel      er is een remote buiten de server
+#   git      GIT-24                       volledig  actieve ruleset op de standaardbranch
+#   git      GIT-28                       volledig  Dependabot-meldingen en beveiligingsupdates aan
+#   git      GIT-76                       deel      .github/dependabot.yml bestaat
+#   git      GIT-69                       deel      lockfile gevolgd en geen kale npm install
+#   git      GIT-81                       deel      composer.lock gevolgd
+#   git      GIT-61                       deel      afhankelijkheden-audit op het lockfile
+#   git      GIT-73                       deel      geen afhankelijkheid uit git of van een losse URL
+#   git      GIT-57                       deel      de gate noemt lint, typecheck of analyse, en tests
+#   git      GIT-58                       deel      er is één gate-opdracht
+#   api      API-67                       deel      tsconfig zet strict expliciet aan
+#   api      API-68                       deel      ESLint-configuratie aanwezig
+#   api      API-72                       deel      package.json eist een ondersteunde Node-versie
+#   api      API-78                       deel      phpstan.neon staat in de repository
+#   git      GIT-41                       deel      elke actie staat vast op een commit-SHA
+#   git      GIT-43                       deel      elke workflow heeft permissions op het hoogste niveau
+#   git      GIT-44                       deel      geen expressie met invoer van buiten in een run-stap
+#   git      GIT-45                       deel      geen gevaarlijke trigger in een workflow
+#   git      GIT-91                       deel      elke image staat vast op een digest
+#   git      GIT-96                       volledig  een Dockerfile haalt niets op zonder controlesom
+#   infra    INFRA-13,INFRA-26,INFRA-27,INFRA-28,INFRA-29,INFRA-30,INFRA-31,INFRA-32,INFRA-33,INFRA-35 deel      vlaggen in het Compose-bestand
+#   scripts  SCR-01                       volledig  elk shellscript begint met de strikte modus
+#   scripts  SCR-18                       deel      geen slotbestand in /tmp
+#   scripts  SCR-22                       deel      niets wordt uitgevoerd dat in dezelfde regel is opgehaald
+#   scripts  SCR-23                       deel      shellcheck is schoon
+#   wordpress WP-08                        deel      elk PHP-bestand weigert rechtstreeks uitvoeren
+#   wordpress WP-13                        deel      elke REST-route heeft een permission_callback
+#   wordpress WP-26                        volledig  geen unserialize van invoer
+#   wordpress WP-37                        deel      PHPCS- en PHPStan-configuratie aanwezig
+set -euo pipefail
+exec python3 "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/dicht_audit.py" wp-thema "$@"

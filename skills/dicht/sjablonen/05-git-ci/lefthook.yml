@@ -1,0 +1,16 @@
+# Sjabloon: dezelfde hooks met lefthook (versie 2.1.16 in het onderzoek) in plaats van pre-commit.
+# Dekt: GIT-33, GIT-58
+# Dekt gedeeltelijk: de aanroep van gitleaks voor alleen de gestagede wijziging staat niet in het onderzoek
+#   (dat noemt alleen "gitleaks git" en "gitleaks dir"). Controleer de vlaggen met gitleaks git --help op de
+#   vastgezette versie voordat je hierop rekent.
+# Kies pre-commit of lefthook, niet allebei. Aanzetten per clone: lefthook install
+# Controleren: een testcommit met een nepsleutel wordt geweigerd; git push draait npm run check.
+# Niet gevalideerd met lefthook (niet aanwezig op de server); alleen de YAML is geladen.
+pre-commit:
+  commands:
+    geheimscan:
+      run: gitleaks git --pre-commit --staged --redact --exit-code 1 .
+pre-push:
+  commands:
+    gate:
+      run: npm run check

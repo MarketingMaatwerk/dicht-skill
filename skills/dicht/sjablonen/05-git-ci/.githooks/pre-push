@@ -1,0 +1,6 @@
+#!/bin/sh
+# Sjabloon: de gate voor elke push, zonder extra hulpmiddel. Letterlijk het voorbeeld uit GIT-58.
+# Dekt: GIT-58
+# Eenmalig aanzetten per clone: git config core.hooksPath .githooks
+# Dit is ook het alternatief voor een ruleset als het GitHub-plan die niet biedt (GIT-23).
+exec npm run check

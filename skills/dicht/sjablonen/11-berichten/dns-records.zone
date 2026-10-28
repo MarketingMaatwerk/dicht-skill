@@ -1,0 +1,63 @@
+; Sjabloon: DNS-records voor mailauthenticatie, per afzenderdomein.
+; Dekt: INFRA-56, INFRA-57, INFRA-58, INFRA-59, INFRA-60, MSG-02, MSG-12 (alleen het subdomein voor de envelop)
+; Aanpassen: voorbeeld.nl, de verzendroutes in het SPF-record, de selector en de publieke sleutel, de adressen
+;   voor rapporten. De records zijn voorbeelden in zonebestand-notatie; neem ze over in het DNS-beheer.
+;   Een record wijzigen op een domein van een klant is een wijziging bij de klant: alleen na akkoord van Marketing Maatwerk.
+; Controleren (per domein en per verzendroute, aan echte mail):
+;   dig +short TXT voorbeeld.nl | grep -c 'v=spf1'              geeft 1 (INFRA-56)
+;   dig +short TXT <selector>._domainkey.voorbeeld.nl           toont de sleutel (INFRA-57)
+;   dig +short TXT _dmarc.voorbeeld.nl                          toont het beleid (INFRA-58)
+;   een ontvangen bericht per route toont spf=pass, dkim=pass met d= gelijk aan het From-domein, en dmarc=pass
+;   er is een DMARC-rapport van de laatste zeven dagen ontvangen (INFRA-58)
+; Gevalideerd op 04-10-2026 op syntaxis: named-checkzone (BIND 9, wegwerpcontainer) laadt de records met een echte
+;   sleutel van 2048 bit. Niet gepubliceerd en niet opgevraagd: of mail er echt mee slaagt meet je per domein.
+
+; --- 1. Het hoofddomein: transactiemail -------------------------------------------------------------------
+
+; Precies een SPF-record, alle echte verzendroutes, hooguit tien DNS-opzoekingen, eindigt op -all (INFRA-56).
+; ~all alleen tijdens een uitrol met een einddatum.
+voorbeeld.nl.                      TXT "v=spf1 include:<verzendroute> -all"
+
+; DKIM per verzendroute, RSA van minstens 2048 bit (INFRA-57). Lees de selector uit de zone of uit de header van
+; een ontvangen bericht; raad hem niet. Ondertekenen zonder l= en met de koppen uit MSG-03 in h=.
+; Een tekenreeks in een TXT-record is hooguit 255 tekens en een sleutel van 2048 bit is er 392: in een zonebestand
+; staat de sleutel daarom in twee delen achter elkaar (named-checkzone weigert hem als een geheel). Een
+; DNS-beheerpaneel splitst meestal zelf; plak daar de waarde zonder aanhalingstekens.
+<selector>._domainkey.voorbeeld.nl. TXT ( "v=DKIM1; k=rsa; p=<publieke sleutel, deel 1, hooguit 230 tekens>"
+                                          "<publieke sleutel, deel 2>" )
+
+; DMARC: begin op p=none met een rua-adres dat gelezen wordt, daarna quarantine, daarna reject (INFRA-58).
+_dmarc.voorbeeld.nl.               TXT "v=DMARC1; p=none; rua=mailto:dmarc@voorbeeld.nl"
+; stap 2: "v=DMARC1; p=quarantine; rua=mailto:dmarc@voorbeeld.nl"
+; stap 3: "v=DMARC1; p=reject; rua=mailto:dmarc@voorbeeld.nl"
+
+; Staat het rapportadres op een ander domein, dan autoriseert dat domein het (INFRA-58):
+; voorbeeld.nl._report._dmarc.beheerder.nl. TXT "v=DMARC1"
+
+; --- 2. Een eigen subdomein voor reclame en koude mail ----------------------------------------------------
+; Elke soort mail een eigen From-adres; reclame en koude mail vanaf een eigen subdomein met een eigen
+; DKIM-domein (MSG-02). Nooit reclame in een transactiebericht.
+
+mail.voorbeeld.nl.                      TXT "v=spf1 include:<verzendroute voor reclame> -all"
+<selector>._domainkey.mail.voorbeeld.nl. TXT ( "v=DKIM1; k=rsa; p=<publieke sleutel, deel 1, hooguit 230 tekens>"
+                                               "<publieke sleutel, deel 2>" )
+_dmarc.mail.voorbeeld.nl.               TXT "v=DMARC1; p=none; rua=mailto:dmarc@voorbeeld.nl"
+
+; --- 3. Een domein of subdomein dat nooit mailt -----------------------------------------------------------
+; Volledig afsluiten (INFRA-59). Letterlijk uit de regel.
+
+voorbeeld.com.         TXT "v=spf1 -all"
+_dmarc.voorbeeld.com.  TXT "v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s"
+voorbeeld.com.         MX 0 .
+
+; --- 4. TLS voor inkomende mail (richtlijn, INFRA-60) -----------------------------------------------------
+; Eerst mode: testing, daarna enforce. Bij mail op gedeelde hosting eerst nagaan of het certificaat van de
+; mailserver de MX-naam dekt.
+
+_mta-sts.voorbeeld.nl.   TXT "v=STSv1; id=<jjjjmmddTuummss>"
+_smtp._tls.voorbeeld.nl. TXT "v=TLSRPTv1; rua=mailto:tlsrpt@voorbeeld.nl"
+; https://mta-sts.voorbeeld.nl/.well-known/mta-sts.txt bevat:
+;   version: STSv1
+;   mode: testing
+;   mx: mail.voorbeeld.nl
+;   max_age: 604800

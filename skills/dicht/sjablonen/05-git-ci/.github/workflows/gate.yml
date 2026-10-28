@@ -1,0 +1,63 @@
+# Sjabloon: de gate als GitHub Actions-workflow.
+# Dekt: GIT-41, GIT-43, GIT-44, GIT-45, GIT-46, GIT-47, GIT-48, GIT-53, GIT-57, GIT-58, GIT-59, GIT-62, GIT-69, GIT-71
+# De twee commit-SHA's staan letterlijk in het onderzoek (GIT-41, voorbeeldpijplijn) en zijn op 04-10-2026
+#   nagevraagd bij de bron: git ls-remote geeft voor actions/checkout v7.0.1 en actions/setup-node v7.0.0 precies
+#   deze SHA's, de GitHub-API toont ze als ondertekende commits, en het zijn de laatste releases.
+#   Controleer ze bij gebruik opnieuw en laat Dependabot ze bijwerken (GIT-52, dependabot.yml).
+# Aanpassen:
+#   - de stap "Scanners klaarzetten": die faalt bewust tot hij is ingevuld (GIT-59). Zet elk hulpmiddel van de
+#     gate op een vaste versie met controlesom of draai het als image op digest (GIT-62), nooit curl naar sh.
+#     Versies uit het onderzoek (04-10-2026): gitleaks 8.30.1, OSV-Scanner 2.6.0, Semgrep CE 1.179.0,
+#     zizmor 1.30.1, actionlint 1.7.12, trivy 0.75.0. Houd de lijst bij volgens GIT-68.
+#   - .nvmrc in de repo met de vastgezette Node-versie (API-72).
+#   - package.json: zie package-scripts.json voor "check" en "scan".
+# Regels voor wie dit bestand uitbreidt:
+#   - geen pull_request_target, workflow_run of issue_comment (GIT-45)
+#   - geen ${{ github.event.* }} of github.head_ref in run: zet de waarde in env: (GIT-44)
+#   - een geheim alleen in env: van precies een stap, nooit secrets: inherit (GIT-48)
+#   - geen continue-on-error, geen "|| true", geen paths-filter (GIT-53, GIT-59)
+#   - geen cache in een job die publiceert of uitrolt (GIT-47); deze workflow gebruikt geen cache
+#   - CI krijgt geen sleutel tot productie (GIT-49)
+# In de repo-instellingen: de job "gate" is de enige verplichte check (GIT-53, ruleset-main.json).
+# Controleren: zizmor .github/ en actionlint zijn zonder bevinding (GIT-56); een PR met een falende test
+#   maakt de job gate rood.
+# Gevalideerd op 04-10-2026 met actionlint 1.7.12 (wegwerpcontainer): geen bevinding. zizmor is niet gedraaid.
+
+name: gate
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0          # volledige geschiedenis voor de geheimscan (GIT-34)
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - name: Scanners klaarzetten
+        run: |
+          echo "vul in: gitleaks, osv-scanner, semgrep, zizmor en actionlint op vaste versie met controlesom (GIT-62)"
+          exit 1
+      - run: npm ci --ignore-scripts
+      # Een opdracht, lokaal en in CI dezelfde (GIT-58): lint, typecheck, tests, geheimscan, audit, SAST, workflow-lint.
+      - run: npm run check
+
+  gate:
+    if: always()
+    needs: [check]
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTS; do [ "$r" = "success" ] || { echo "gate rood: $RESULTS"; exit 1; }; done

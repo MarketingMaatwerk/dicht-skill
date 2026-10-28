@@ -1,0 +1,63 @@
+# Sjabloon: gehard service-unit voor een eigen dienst die blijft draaien.
+# Dekt: INFRA-66, INFRA-67, INFRA-68, INFRA-72, SCR-20, SCR-42, ARCH-12, ARCH-17, ARCH-61, API-72, API-74
+# Aanpassen:
+#   - "voorbeeld" overal (naam, gebruiker, paden) en de ExecStart.
+#   - eenmalig: useradd --system --no-create-home --shell /usr/sbin/nologin voorbeeld   (INFRA-66)
+#     De gebruiker heeft geen sudo en is geen lid van docker.
+#   - RestartSec, StartLimitIntervalSec, StartLimitBurst en MemoryMax zijn de voorbeeldwaarden uit SCR-42;
+#     kies ze per dienst.
+#   - TimeoutStopSec: de regel noemt geen getal. systemd wacht standaard 90 seconden voor SIGKILL; de dienst
+#     moet zelf eerder klaar zijn met afsluiten (ARCH-17). Zet hier een eigen waarde als dat korter moet.
+#   - RestrictAddressFamilies: haal AF_UNIX of de INET-families weg als de dienst ze niet gebruikt.
+# Geheimen: nooit in Environment= (INFRA-72). LoadCredential zet het bestand alleen voor dit proces klaar
+#   onder $CREDENTIALS_DIRECTORY/<naam> (SCR-20). Het bronbestand heeft modus 600 en staat buiten elke repository.
+#   Een EnvironmentFile mag voor gewone configuratie; voor een geheim alleen als LoadCredential niet kan.
+# Controleren:
+#   systemd-analyze verify voorbeeld.service
+#   systemd-analyze security voorbeeld.service          streef naar een score onder 5,0 (INFRA-67)
+#   systemctl show voorbeeld -p User -p NoNewPrivileges -p ProtectSystem
+#   ps -o user= -p "$(systemctl show voorbeeld -p MainPID --value)"   toont de eigen gebruiker, niet root of het beheeraccount
+
+[Unit]
+Description=Voorbeeld (eigen dienst)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=10min
+StartLimitBurst=10
+OnFailure=meld-fout@%n.service
+
+[Service]
+Type=simple
+User=voorbeeld
+Group=voorbeeld
+WorkingDirectory=/opt/voorbeeld
+Environment=NODE_ENV=production
+Environment=TZ=UTC
+EnvironmentFile=/etc/voorbeeld/voorbeeld.env
+LoadCredential=database_url:/etc/voorbeeld/database_url
+# Absoluut pad naar de vastgezette runtime (API-72). Geen --inspect, geen watch (API-74).
+ExecStart=/usr/bin/node /opt/voorbeeld/dist/server.js
+
+# Herstart en grenzen (INFRA-68, SCR-42): traag herstarten, nooit Restart=always.
+Restart=on-failure
+RestartSec=30
+MemoryMax=300M
+
+# Logs naar het journal (ARCH-61).
+StandardOutput=journal
+StandardError=journal
+
+# Sandbox: het minimum uit INFRA-67, letterlijk.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/voorbeeld
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

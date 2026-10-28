@@ -1,0 +1,124 @@
+soort	patroon	doelen	klasse	toelichting
+kern	-	GIT-01,GIT-03,GIT-04,GIT-05,GIT-32,GIT-33,GIT-58,GIT-59,ARCH-30,ARCH-34,ARCH-52,ARCH-53	-	gelden bij elke wijziging: worktree, valideren, expliciet stagen, commit per stap, geen geheim, geheimscan, de gate, uitzonderingen, test bij een bugfix, bewijs
+licht	(^|/)(tests?|__tests__|e2e)/|\.(test|spec)\.[a-z]+$|(^|/)test_[^/]+\.py$	arch-g,ARCH-38,ARCH-39	-	testbestand
+licht	^(?!.*(^|/)(SKILL|CLAUDE|AGENTS)\.md$)(?!.*(^|/)(\.claude|agents?|prompts?|skills?)/).*(\.(md|txt|rst|adoc)$|(^|/)(LICENSE|README|CHANGELOG|NOTICE)[^/]*$)	-	-	tekst en documentatie (geen agentconfiguratie)
+licht	\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|mp3|mp4|webm|pdf)$	-	-	beeld, lettertype, geluid, document
+licht	\.(css|scss|sass|less)$	-	-	stijl
+licht	^bewijs/|^\.dicht/(project|overrules\.log)$	-	-	bewijsbestand en projectmap van dicht
+pad	(^|/)(migrations?|migraties|drizzle)/|\.sql$|(^|/)schema\.(ts|js|prisma)$|(^|/)db/[^/]+\.(ts|js)$	db-d,db-h,db-g,ARCH-25,ARCH-35	gewoon	migratie of schema
+pad	nginx|(^|/)(sites-(available|enabled)|conf\.d)/	infra-e,infra-f,web-3,web-9	gewoon	nginx
+pad	\.htaccess$|\.user\.ini$	wp-i,web-3	gewoon	serverlaag van een klantsite
+pad	\.(service|timer|socket)$|(^|/)systemd/	infra-h,scr-h	gewoon	systemd-unit of timer
+pad	(^|/)crontab|(^|/)cron(\.d)?/|\.cron$	infra-h,scr-h	gewoon	cron
+pad	(^|/)Dockerfile|(^|/)(docker-)?compose[^/]*\.ya?ml$|\.dockerignore$	infra-d,git-i,GIT-63,GIT-66	gewoon	Docker en Compose
+pad	(^|/)(package(-lock)?\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|\.npmrc)$	git-g,GIT-61	gewoon	afhankelijkheden in npm
+pad	(^|/)composer\.(json|lock)$	git-h,GIT-61	gewoon	afhankelijkheden in Composer
+pad	(^|/)(requirements[^/]*\.txt|pyproject\.toml|Pipfile(\.lock)?|poetry\.lock|uv\.lock)$	scr-g,GIT-61,GIT-75,GIT-78	gewoon	afhankelijkheden in Python
+pad	(^|/)\.github/|(^|/)(dependabot\.yml|renovate\.json|CODEOWNERS)$	git-e,git-c	gewoon	CI en repository-instellingen
+pad	(^|/)(tsconfig[^/]*\.json|\.?eslint[^/]*|phpstan[^/]*|phpcs[^/]*|vitest\.config\.[a-z]+|playwright\.config\.[a-z]+|stryker[^/]*|lefthook\.yml|\.pre-commit-config\.yaml|\.gitleaks[^/]*|Makefile)$	git-f,arch-f	gewoon	instelling van de gate
+pad	(^|/)\.env|\.(pem|key|p12|pfx)$|(^|/)secrets?/	git-d,infra-i,arch-b	gewoon	geheimen en omgeving
+pad	(^|/)\.git(ignore|attributes)$	git-a,git-d	klein	wat git volgt
+pad	\.(sh|bash)$	scr-a,scr-b,scr-c,scr-e,scr-f	klein	shellscript
+pad	\.py$	scr-g,scr-e	klein	Python-script
+pad	^(?!.*(^|/)(static|public|assets|frontend|client|components|pages|views)/).*\.(ts|mts|cts|js|mjs|cjs)$	api-i	klein	TypeScript of Node buiten de frontend
+pad	(^|/)(static|public|assets|frontend|client|components|pages|views)/.*\.(ts|js|mjs)$|\.(jsx|tsx|vue|svelte)$	web-1	klein	JavaScript in de browser
+pad	\.(html?|twig|hbs|ejs|njk|mustache|liquid|ftl)$	web-1,web-2	klein	template
+pad	\.svg$	inv-f,web-1	klein	SVG
+pad	\.php$	api-j,wp-a,wp-b	klein	PHP
+pad	(^|/)(wp-content|mu-plugins|plugins|themes?)/|(^|/)(functions|uninstall)\.php$|(^|/)theme\.json$	wp-a,wp-b,wp-e	klein	WordPress-plugin of -thema
+pad	wp-config	wp-f	gewoon	wp-config
+pad	(^|/)(routes?|handlers?|controllers?|endpoints?|api)/|(^|/)(server|app|router?|routes)\.(ts|js|mjs|php)$|[-_.](routes?|handlers?|controller)\.(ts|js|mjs|php)$	api-a,api-b,api-c,auth-i	klein	route of handler
+pad	webhook	api-f,auth-h,api-d,biz-d	gewoon	webhook
+pad	(^|/|[-_.])(auth|login|logout|sessions?|oauth|passkeys?|passwords?|wachtwoord|jwt|mfa|totp|rbac|acl|permissions?)([-_./]|$)	auth-b,auth-e,auth-f,auth-i,ARCH-54	gewoon	inloggen, sessie, token of rechten
+pad	mollie|payment|betaal|betaling|checkout|invoic|factuur|billing|incasso|renew|korting|vergoeding|(^|/|[-_.])(vat|btw|prijs|prices?|period|cycles)([-_./]|$)	api-e,api-d,biz-b,biz-d,priv-p,ARCH-54	gewoon	betaling, geld of looptijd
+pad	tenant|(^|/)orgs?/|organi[sz]ation	auth-j,db-b,ARCH-54	gewoon	tenant
+pad	(^|/)(config|settings|env)\.(ts|js|mjs|php|py)$	arch-b	gewoon	configuratiemodule
+pad	mail|smtp|imap|nieuwsbrief|newsletter|\.sieve$	msg-c	klein	mail
+pad	mcp	ai-3,ai-4	gewoon	MCP-server of -client
+pad	(^|/)(agents?|prompts?|skills?)/|\.(prompt|profile)$|(^|/)(SKILL|CLAUDE|AGENTS)\.md$|(^|/)\.claude/	ai-1,ai-5	gewoon	prompt of agentconfiguratie
+pad	(^|/)(deploy|publish|release|uitrol)[^/]*	arch-d	gewoon	uitrol
+pad	(^|/|[-_.])(log(ger|ging)?|audit|health|metrics)([-_.]|/)	arch-i	klein	logging en bewaking
+pad	^\.dicht/profiel\.json$	arch-l,priv-k	gewoon	het profiel zelf
+pad	policy-state\.ya?ml$	priv-a,priv-c	klein	verwerkingsregister
+pad	(^|/)(robots\.txt|sitemap[^/]*\.xml|security\.txt|manifest\.(json|webmanifest)|sw\.js|service-?worker[^/]*)$|(^|/)\.well-known/	web-13	klein	indexatie en service worker
+pad	back-?up|restore|herstel|(^|/|[-_.])dump([-_./]|$)	db-e,infra-j	gewoon	back-up en herstel
+pad	sshd_config|(^|/)(ufw|iptables|nftables|fail2ban)	infra-a,infra-b	gewoon	toegang en firewall
+pad	\.zone$|(^|/)dns/	infra-g	gewoon	DNS
+pad	rate-?limit	api-c	klein	limieten
+pad	(^|/|[-_.])(worker|queue|jobs?)([-_./]|$)	biz-f	klein	achtergrondtaak
+rest	\.(json|ya?ml|toml|ini|conf|cfg|xml)$	arch-b	gewoon	overige configuratie
+inhoud	\b(create|alter|drop)\s+(table|index|type|schema|policy|role|extension|view|function)\b|\b(grant|revoke)\s+\w+.*\b(on|to|from)\b|pgTable\(|\badd\s+column\b	db-d,db-h,db-a,PRIV-03	gewoon	schemawijziging
+inhoud	\bselect\b.+\bfrom\b|insert\s+into|\bupdate\s+\w+\s+set\b|delete\s+from|\bsql`|\.(query|execute)\(|\bdb\.(select|insert|update|delete|transaction)\b	db-c,db-g	gewoon	query op de database
+inhoud	\$wpdb|->prepare\(|dbDelta	wp-c,db-c	gewoon	query in WordPress
+inhoud	tenant|\borg(ani[sz]ation)?_?id\b|row level security|\bset_config\(	auth-j,db-b,ARCH-54	gewoon	tenant
+inhoud	passwor[dt]|wachtwoord|argon2|bcrypt|passkey|webauthn|\btotp\b|\bmfa\b	auth-a,auth-c,ARCH-54	gewoon	wachtwoord of tweede factor
+inhoud	\bjwt\b|jsonwebtoken|\bsessions?\b|set-cookie|\bbearer\b|api[_-]?key|access[_-]?token|refresh[_-]?token	auth-e,auth-f,auth-h,ARCH-54	gewoon	sessie, token of sleutel
+inhoud	current_user_can|wp_verify_nonce|check_admin_referer|check_ajax_referer|permission_callback|\bisAdmin\b|requireAuth|vereisSessie|\bauthori[sz]e|\bpermissions?\b|\brollen\b|\broles?\b	auth-i,wp-b,ARCH-54	gewoon	autorisatie
+inhoud	mollie|moneybird|\bpayments?\b|\brefund|chargeback|incasso|\bsubscriptions?\b|\bamount\b|\bprice\b|\bvat\b|\bbtw\b|\bdiscount|\binvoice	api-e,biz-b,priv-p,ARCH-54	gewoon	betaling of geld
+inhoud	\bfetch\(|\baxios\b|\bgot\(|https?\.request|wp_remote_(get|post|request|head)|curl_(init|exec|setopt)|\brequests\.(get|post|put|patch|delete)|\burllib\b|\bhttpx\b	api-f,web-7,PRIV-03	gewoon	aanroep naar buiten
+inhoud	child_process|\bexec(Sync|File|FileSync)?\(|\bspawn(Sync)?\(|subprocess\.|os\.system|shell_exec|passthru|proc_open|popen\(|\beval\(|new Function\(|unserialize\(|pickle\.|yaml\.load\(	api-g	gewoon	gevaarlijke functie
+inhoud	innerHTML|outerHTML|insertAdjacentHTML|document\.write|dangerouslySetInnerHTML|v-html|\besc_(html|attr|url|js)|wp_kses	web-1,wp-a	klein	uitvoer naar HTML
+inhoud	content-security-policy|add_header|setHeader\(|\bhelmet\b|access-control-allow|\bcors\b|x-frame-options|strict-transport|referrer-policy	web-2,web-3,web-5	gewoon	kopregels, CSP of CORS
+inhoud	\bredirect\(|wp_(safe_)?redirect|window\.location|location\.href|header\(\s*['\"]location	web-7	klein	redirect
+inhoud	multipart|\bupload|move_uploaded_file|\$_FILES|\bmulter\b|createWriteStream|\b(read|write)File(Sync)?\(|\bfopen\(|file_(get|put)_contents|\bunlink\(	web-8,inv-n,inv-l	gewoon	upload of bestand
+inhoud	\bxml\b|DOMDocument|simplexml|DOMParser	inv-a	klein	XML
+inhoud	JSON\.parse|json_decode|json\.loads?\(|\bqs\.parse|URLSearchParams	inv-b	klein	JSON of querystring
+inhoud	\byaml\b|\btoml\b	inv-c	klein	YAML of TOML
+inhoud	\bcsv\b|xlsx|spreadsheet	inv-d	klein	CSV of spreadsheet
+inhoud	DOMPurify|sanitize-?html|\bmarked\b|markdown	inv-e	klein	HTML of Markdown opschonen
+inhoud	\bsharp\(|imagemagick|imagick|\bexif\b	inv-f	klein	afbeelding
+inhoud	puppeteer|wkhtmltopdf|pdfkit|\bpdf-?lib\b	inv-g	klein	PDF
+inhoud	\bunzip|gunzip|zipfile|tarfile|ZipArchive|\badm-zip\b|\btar\s+-?x	inv-h	klein	archief
+inhoud	sendMail|nodemailer|wp_mail|\bsmtp|\bmail\(|list-unsubscribe|\bimap|mailparser|smtplib	msg-a,msg-b,msg-c,msg-d,PRIV-03	gewoon	mail versturen of lezen
+inhoud	whatsapp|wacli	msg-e	klein	WhatsApp
+inhoud	discord|slack	msg-f	klein	Discord of Slack
+inhoud	web-?push|pushManager	msg-g	klein	web push
+inhoud	anthropic|openai|\bclaude\b|messages\.create|chat\.completions|\bllm\b|\bprompt|embedding|\bmcp\b|tool_use|registerTool|server\.tool\(	ai-1,ai-2,ai-3,ai-7,PRIV-03	gewoon	model, agent of MCP
+inhoud	process\.env|\bgetenv\(|os\.environ|\$_ENV	arch-b,infra-i	gewoon	omgevingsvariabele
+inhoud	time-?out|AbortSignal|AbortController|\bundici\b|\bdispatcher\b	api-f,arch-c	klein	time-out op een aanroep naar buiten
+inhoud	console\.(log|error|warn|info)|\blogger\.|error_log\(|\blog\.(info|error|warn|debug)|\blogging\.|\bprint\(	arch-i	klein	logregel
+inhoud	for update|advisory_lock|\btransaction\b|idempot|\bretry|\bretries\b|setInterval\(|\bqueue\b	biz-a,biz-f,api-d,arch-c	klein	vergrendelen, herhalen of idempotentie
+inhoud	new Date\(|Date\.now\(|strtotime|\btimezone|datetime\.|toISOString	biz-d	klein	tijd en datum
+inhoud	looptijd|\bperiod|\btermijn|_term_|\bterm_|_until\b|expires?_?at|valid_?(until|from)|\bduration|\bmonths?\b	biz-d	klein	looptijd, periode of termijn
+inhoud	OnCalendar|\bflock\b|\bcrontab\b	scr-h,scr-d	klein	geplande taak of slot
+inhoud	\brm\s+-[a-z]*r|\|\s*(sudo\s+)?(ba)?sh\b|\bsudo\b|tmux\s+send-keys	scr-c,scr-f,scr-k	gewoon	verwijderen, code van buiten of een sessie aansturen
+inhoud	dry-?run|proefstand|plafond|noodstop	scr-j	gewoon	script dat verstuurt of verwijdert
+inhoud	\bbsn\b|\biban\b|geboortedatum|date_?of_?birth|birth_?date|diagnos|pati[eë]nt	priv-b,priv-j,PRIV-03	gewoon	gevoelige persoonsgegevens
+inhoud	e-?mail|telefoon|\bphone|\badres\b|\baddress|first_?name|last_?name|voornaam|achternaam	priv-b	klein	persoonsgegevens
+inhoud	document\.cookie|localStorage|sessionStorage|\bgtag\(|google-?analytics|googletagmanager|\bconsent\b	priv-h,web-4,PRIV-03	gewoon	cookies, opslag in de browser of tracking
+inhoud	rate.?limit|\bthrottle|\b429\b	api-c	klein	limiet
+inhoud	\bzod\b|\bz\.(object|string|number|array|enum)\(|safeParse|\bajv\b|sanitize_text_field|filter_var|filter_input	api-a	klein	invoervalidatie
+inhoud	\bcrypto\b|randomBytes|createHash|createHmac|timingSafeEqual|\bmd5\b|\bsha1\b|openssl_|random_bytes|hash_equals|hash_hmac	api-h	gewoon	cryptografie
+inhoud	add_shortcode|register_block_type|register_setting|register_rest_route|wp_ajax_|add_(menu|options)_page	wp-e,wp-b	gewoon	nieuwe ingang in WordPress
+inhoud	\bwc_|woocommerce	wp-n	gewoon	WooCommerce
+inhoud	maybe_unserialize|wp_handle_upload|wp_remote_	wp-d	gewoon	bestanden, serialisatie of externe aanvraag in WordPress
+inhoud	postMessage|addEventListener\(\s*['\"]message|<iframe|window\.open	web-6	klein	framing en berichten
+inhoud	<script[^>]+src=|\bintegrity=|\bcdn\b	web-10	gewoon	bron van een derde
+inhoud	<form|captcha|honeypot|turnstile	web-12	klein	formulier
+inhoud	cache-control|\betag\b|proxy_cache|s-maxage	web-9	klein	caching
+inhoud	\boauth|\bpkce\b|openid|\boidc\b|redirect_uri	auth-g,ARCH-54	gewoon	OAuth of OpenID Connect
+inhoud	reset_?(token|link|password)|magic.?link|verif(y|ication)_?(token|link|email)|wachtwoord\s*vergeten	auth-d,ARCH-54	gewoon	wachtwoordreset, verificatie of magic link
+inhoud	impersonat|audit_?log|\bis_?super_?admin\b|\bsupport_?access\b	auth-k	gewoon	beheerder, impersonatie of auditlog
+inhoud	voorraad|\bstock\b|\bquota\b|\bquotum\b	biz-c	klein	voorraad of quotum
+inhoud	coupon|kortingscode|\btrial\b|proefperiode	biz-e	gewoon	stroom die misbruikt kan worden
+inhoud	DATABASE_URL|sslmode|pg_hba|new Pool\(	db-f	gewoon	verbinding met de database
+inhoud	\bencrypt|\bdecrypt|pgcrypto|bewaartermijn|\bretention|anonimi|pseudonimi	db-i,priv-d	gewoon	versleuteling of bewaartermijn
+inhoud	\$_(POST|GET|REQUEST)\b|\bextract\(|\.\.\.req\.body|update_post_meta|wp_insert_post|wp_update_post	inv-i,wp-a	klein	invoer rechtstreeks naar opslag
+inhoud	\.normalize\(|\bNFK?C\b|punycode|homogly	inv-k	klein	Unicode
+inhoud	\bwp\s+(eval|db|plugin|theme|user|option|search-replace|core)\b|wp-cli	wp-j	gewoon	WP-CLI
+inhoud	xmlrpc|wp-login|rest_authentication_errors|\bauthor=	wp-h	gewoon	blootstelling en inloggen in WordPress
+inhoud	while\s+true|while\s*\(\s*true\s*\)|while\s+True|\bsleep\s+\d|time\.sleep\(	scr-i	klein	lus of monitor
+inhoud	display_errors|WP_DEBUG|\berr(or)?\.stack\b|stack_?trace	web-11	klein	foutmelding naar buiten
+inhoud	aria-|\balt=|<label|tabindex|\brole=	priv-l	klein	toegankelijkheid
+inhoud	\bvector(store|db)?\b|\brag\b|\bretriev	ai-6,PRIV-03	gewoon	gegevens naar een model of RAG
+profiel	persoonsgegevens=nee	priv-b,priv-d,priv-e,priv-g	-	het project verwerkt geen persoonsgegevens
+profiel	betalingen=nee	api-e,biz-b,priv-p,wp-n	-	het project kent geen betalingen
+profiel	zorgdata=nee	priv-j	-	het project verwerkt geen zorgdata
+profiel	tenants=een	auth-j,db-b	-	het project heeft een tenant
+profiel	bereikbaar_van_buiten=nee	infra-e,infra-f,infra-n,web-13	-	het project is niet van buiten bereikbaar
+profiel	ai_of_mcp=nee	AI,priv-o	-	het project heeft geen model, agent of MCP-server
+profiel	scripts=nee	SCR	-	het project heeft geen script, geplande taak of lus
+profiel	mail=nee	MSG,priv-i	-	het project verstuurt en leest geen mail of berichten
+voorkant	^(?!(tools|scripts|bin)/)(?!.*(^|/)(tests?|e2e|node_modules|vendor|api|server|routes)/)(?!.*(^|/)(server|[a-z]*file)\.m?js$)(?!.*\.config\.[a-z]+$).*\.(css|scss|sass|less)$	vibe-c,vibe-d	klein	stijl van de voorkant: mobiel en layout, snelheid (oplevercontrole, ook al is stijl licht)
+voorkant	^(?!(tools|scripts|bin)/)(?!.*(^|/)(tests?|e2e|node_modules|vendor|api|server|routes)/)(?!.*(^|/)(server|[a-z]*file)\.m?js$)(?!.*\.config\.[a-z]+$).*\.(m?js|jsx|tsx|vue|svelte)$	vibe-b,vibe-c,vibe-d	klein	script van de voorkant: knoppen, formulieren, menu, snelheid
+voorkant	^(?!(tools|scripts|bin)/)(?!.*(^|/)(tests?|e2e|node_modules|vendor|api|server|routes)/)(?!.*(^|/)(server|[a-z]*file)\.m?js$)(?!.*\.config\.[a-z]+$).*(\.(html?|twig|hbs|ejs|njk|mustache|liquid|astro)$|\.blade\.php$|(^|/)(themes?|templates?|page-templates|template-parts|parts|patterns|partials|layouts)/.*\.php$|^(?!(wp-config|functions|uninstall)\.php$)[^/]+\.php$)	vibe-a,vibe-b,vibe-c,vibe-e,vibe-f	klein	sjabloon of thema (ook een themabestand in de root van een themarepo): inhoud, links, formulieren, vindbaarheid, WordPress

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# audit-api: alleen-lezen, begrensde audit voor het projecttype api (ARCH-84, ARCH-85).
+# Gebruik: audit-api [--pad MAP] [--url URL] [--server] [--wp MAP | --wp-ssh gebruiker@host:/pad] [--uit MAP] [--geen-bewijs]
+# Schrijft alleen bewijs/<datum>-<hash>.md en .json. Exitcode 1 bij een niet-voldane harde regel.
+#
+# Meet automatisch (domein, regel, dekking, controle); alleen regels uit de checklist van het type tellen mee:
+#   git      GIT-10                       volledig  .gitignore sluit .env uit en er is geen geheimbestand gevolgd
+#   infra    INFRA-72                     deel      geheimbestanden in de projectmap hebben modus 600 of 400
+#   git      GIT-32                       deel      geheimscan over de gevolgde bestanden
+#   git      GIT-33                       deel      pre-commit-hook met geheimscan aanwezig
+#   git      GIT-18                       deel      laatste commit is ondertekend
+#   git      GIT-09                       deel      er is een remote buiten de server
+#   git      GIT-24                       volledig  actieve ruleset op de standaardbranch
+#   git      GIT-28                       volledig  Dependabot-meldingen en beveiligingsupdates aan
+#   git      GIT-76                       deel      .github/dependabot.yml bestaat
+#   git      GIT-69                       deel      lockfile gevolgd en geen kale npm install
+#   git      GIT-81                       deel      composer.lock gevolgd
+#   git      GIT-61                       deel      afhankelijkheden-audit op het lockfile
+#   git      GIT-73                       deel      geen afhankelijkheid uit git of van een losse URL
+#   git      GIT-57                       deel      de gate noemt lint, typecheck of analyse, en tests
+#   git      GIT-58                       deel      er is één gate-opdracht
+#   api      API-67                       deel      tsconfig zet strict expliciet aan
+#   api      API-68                       deel      ESLint-configuratie aanwezig
+#   api      API-72                       deel      package.json eist een ondersteunde Node-versie
+#   api      API-78                       deel      phpstan.neon staat in de repository
+#   git      GIT-41                       deel      elke actie staat vast op een commit-SHA
+#   git      GIT-43                       deel      elke workflow heeft permissions op het hoogste niveau
+#   git      GIT-44                       deel      geen expressie met invoer van buiten in een run-stap
+#   git      GIT-45                       deel      geen gevaarlijke trigger in een workflow
+#   git      GIT-91                       deel      elke image staat vast op een digest
+#   git      GIT-96                       volledig  een Dockerfile haalt niets op zonder controlesom
+#   infra    INFRA-13,INFRA-26,INFRA-27,INFRA-28,INFRA-29,INFRA-30,INFRA-31,INFRA-32,INFRA-33,INFRA-35 deel      vlaggen in het Compose-bestand
+#   scripts  SCR-01                       volledig  elk shellscript begint met de strikte modus
+#   scripts  SCR-18                       deel      geen slotbestand in /tmp
+#   scripts  SCR-22                       deel      niets wordt uitgevoerd dat in dezelfde regel is opgehaald
+#   scripts  SCR-23                       deel      shellcheck is schoon
+#   scripts  SCR-38,SCR-18,INFRA-69       deel      cron-regels met time-out en slot
+#   infra    INFRA-70                     deel      cron-scripts niet schrijfbaar voor anderen en geen geheim in de crontab
+#   infra    INFRA-66                     deel      elke eigen dienst heeft een eigen account zonder sudo of docker
+#   infra    INFRA-67                     deel      systemd-analyze security onder 5,0 per eigen dienst
+#   infra    INFRA-68                     deel      herstartbeleid en geheugenlimiet per eigen dienst
+#   scripts  SCR-38                       deel      elke eigen timer-dienst heeft een eindige time-out
+#   infra    INFRA-72                     deel      geen geheim in Environment= van een unit
+#   infra    INFRA-01,INFRA-02            deel      effectieve sshd-configuratie
+#   infra    INFRA-14                     deel      alleen sshd en de proxy luisteren op alle adressen
+#   infra    INFRA-20                     deel      automatische beveiligingsupdates staan aan
+#   infra    INFRA-21                     volledig  geen herstart die langer dan een week wacht
+#   infra    INFRA-22                     deel      versie van het besturingssysteem
+#   infra    INFRA-13,INFRA-26,INFRA-27,INFRA-28,INFRA-29,INFRA-30,INFRA-31,INFRA-32,INFRA-33,INFRA-35 deel      docker inspect op de draaiende containers
+#   infra    INFRA-43,INFRA-44,INFRA-45,INFRA-46,WEB-22 deel      nginx -T op de host
+#   web      WEB-17                       deel      HSTS op de homepage en op een 404
+#   web      WEB-09                       deel      nosniff en Content-Type met charset op de homepage en op een 404
+#   web      WEB-11                       deel      CSP met object-src none, base-uri none en een nonce of hash
+#   web      WEB-15                       volledig  CSP komt als header en niet als meta-tag
+#   web      WEB-19                       deel      Referrer-Policy op een gewone pagina
+#   web      WEB-20                       volledig  Permissions-Policy aanwezig
+#   web      WEB-22                       volledig  geen versie of verouderde kopregel in de respons
+#   web      WEB-24                       deel      frame-ancestors in de CSP-header op de homepage en op een 404
+#   web      WEB-23                       deel      de verplichte kopregels staan op elke gemeten respons
+#   web      WEB-25                       deel      elke cookie op de homepage heeft Secure
+#   web      WEB-62                       deel      een 404 toont geen stacktrace, query of pad
+#   web      WEB-64,WP-62                 deel      bekende paden geven 403 of 404
+#   infra    INFRA-65                     volledig  security.txt met Contact en een geldige Expires
+#   infra    INFRA-44                     deel      TLS 1.0 en 1.1 worden geweigerd, 1.2 of 1.3 werkt
+#   infra    INFRA-52                     deel      het certificaat is nog minstens 14 dagen geldig
+#   infra    INFRA-56                     deel      precies één SPF-record dat eindigt op -all
+#   infra    INFRA-58                     deel      DMARC-record met een beleid
+#   infra    INFRA-53                     deel      CAA-record aanwezig
+#   architectuur ARCH-67                      deel      /health antwoordt en /ready geeft van buiten geen details
+set -euo pipefail
+exec python3 "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/dicht_audit.py" api "$@"

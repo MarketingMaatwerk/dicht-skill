@@ -1,0 +1,25 @@
+# Sjabloon: cron-regel met slot, time-out, vast log en absolute paden.
+# Dekt: INFRA-69, INFRA-70, SCR-18, SCR-37, SCR-38, SCR-40
+# Voor een nieuwe taak heeft een systemd-timer de voorkeur (SCR-41, zie voorbeeld-taak.timer); gebruik cron
+#   alleen als de taak aantoonbaar geen time-out, OnFailure, journal of sandbox nodig heeft.
+# Aanpassen: de paden, het tijdstip en de duur (15m is de voorbeeldwaarde uit SCR-38).
+#   - Slotbestand in een map die alleen het eigen account kan schrijven, nooit /tmp (SCR-18). Maak de map eenmalig:
+#       install -d -m 700 /home/<account>/.local/state/voorbeeld
+#   - Log op een vaste plek buiten /tmp (INFRA-69), met rotatie en een bewaartermijn (INFRA-88).
+#   - Geen geheim in de regel (INFRA-70, INFRA-72) en een backslash voor elk procentteken (SCR-37).
+#   - Niet plannen tussen 02:00 en 03:00 als het script op uur of datum beslist, en geen TZ= in de crontab (SCR-40).
+#   - PATH, werkmap en variabelen zet het script zelf (SCR-37, zie 04-scripts/taak.sh).
+# Exitcodes: flock -E 75 betekent "draait al, overgeslagen" en is geen fout (SCR-18); 124 is een time-out en
+#   wel een fout (SCR-38). De wrapper hieronder meldt elke andere exitcode dan 0 en 75.
+# Dekt gedeeltelijk: INFRA-69 vraagt ook een melding bij het uitblijven van een geslaagde run; dat doet deze
+#   regel niet (bewaking van buiten, INFRA-87).
+# Gevalideerd op 04-10-2026 in een wegwerpcontainer (Debian cron 3.0pl1-162): de crontab installeert, cron
+#   start de regel, en vier gevallen gedraaid: geslaagd (geen melding), exitcode 3 (melding), time-out (melding),
+#   slot bezet (exitcode 75, geen melding). De variabele hierboven komt aan bij meld-fout.sh.
+# Controleren: crontab -l toont de regel; een tweede start tijdens een run geeft exitcode 75; het script is
+#   alleen schrijfbaar voor zijn eigenaar: stat -c '%a %U %n' /home/<account>/voorbeeld/taak.sh
+
+# Het pad naar het bestand met het webhookadres; het pad is geen geheim, de inhoud wel (MSG-41).
+ALARM_WEBHOOK_BESTAND=/home/<account>/secrets/alarm_webhook_url
+
+0 7 * * * /usr/bin/flock -n -E 75 /home/<account>/.local/state/voorbeeld/taak.lock /usr/bin/timeout -k 30 15m /home/<account>/voorbeeld/taak.sh >> /home/<account>/logs/voorbeeld-taak.log 2>&1 || [ "$?" -eq 75 ] || /home/<account>/voorbeeld/meld-fout.sh voorbeeld-taak
